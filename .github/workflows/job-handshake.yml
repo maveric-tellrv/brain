@@ -1,0 +1,58 @@
+name: Job-to-Job Handshake Demo
+
+# Demonstrates passing data BETWEEN jobs (not just between steps within one job)
+# using job-level `outputs:` and `needs:`.
+#
+# IMPORTANT: jobs cannot pause and resume. A job runs once, start to finish.
+# So a "job1 -> job2 -> back to job1" handshake is modeled as THREE jobs:
+#   job1_send   -> sends a message
+#   job2        -> receives it, prints it, sends an ack back
+#   job1_finish -> receives the ack, prints it, finishes the pipeline
+# `needs:` makes these run sequentially (in order), unlike the parallel
+# matrix jobs in hello-world.yml.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  job1_send:
+    name: "Job 1: Send"
+    runs-on: ubuntu-latest
+    # Job-level outputs expose a step's output to OTHER jobs via `needs.<job_id>.outputs.<key>`.
+    outputs:
+      message: ${{ steps.send.outputs.message }}
+    steps:
+      - id: send
+        name: Send a message to job2
+        run: |
+          echo "Job1: sending a message to job2..."
+          echo "message=Hello from job1!" >> "$GITHUB_OUTPUT"
+
+  job2:
+    name: "Job 2: Receive + Ack"
+    needs: job1_send # waits for job1_send, and unlocks needs.job1_send.outputs
+    runs-on: ubuntu-latest
+    outputs:
+      ack: ${{ steps.ack.outputs.ack }}
+    steps:
+      - name: Print the message received from job1
+        run: echo "Job2 received: ${{ needs.job1_send.outputs.message }}"
+
+      - id: ack
+        name: Send an acknowledgment back to job1
+        run: |
+          echo "Job2: sending an ack back to job1..."
+          echo "ack=ACK - job2 received your message loud and clear!" >> "$GITHUB_OUTPUT"
+
+  job1_finish:
+    name: "Job 1: Finish (receive ack)"
+    needs: job2 # waits for job2, and unlocks needs.job2.outputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print the ack received from job2
+        run: echo "Job1 (finish) received: ${{ needs.job2.outputs.ack }}"
+
+      - name: Finish the pipeline
+        run: echo "Pipeline complete."
