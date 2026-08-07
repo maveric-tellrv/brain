@@ -43,6 +43,7 @@ jobs:
         run: |
           echo "Architecture: ${{ matrix.architecture }}"
           echo "Platform:     ${{ matrix.platform }}"
+          echo "$(uname -a)"
 
       # 3. Persist a value in an env var for later steps in this same job.
       - name: Set a custom environment variable
