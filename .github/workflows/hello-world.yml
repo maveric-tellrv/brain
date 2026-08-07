@@ -10,8 +10,15 @@ on:
 
 jobs:
   hello:
-    name: Say hello and inspect the environment
+    name: Say hello (${{ matrix.architecture }} / ${{ matrix.platform }})
     runs-on: ubuntu-latest
+
+    # Expands this single job into one run per combination below
+    # (2 architectures x 1 platform = 2 parallel job runs).
+    strategy:
+      matrix:
+        architecture: [amd64, arm64]
+        platform: [linux]
 
     steps:
       # 1. Check out the repo so the runner has access to its files.
@@ -30,6 +37,12 @@ jobs:
           echo "Triggered by: ${{ github.event_name }}"
           echo "Commit SHA:  ${{ github.sha }}"
           echo "Runner OS:   ${{ runner.os }}"
+
+      # Matrix values are accessed via ${{ matrix.<key> }}.
+      - name: Show matrix values for this job instance
+        run: |
+          echo "Architecture: ${{ matrix.architecture }}"
+          echo "Platform:     ${{ matrix.platform }}"
 
       # 3. Persist a value in an env var for later steps in this same job.
       - name: Set a custom environment variable
