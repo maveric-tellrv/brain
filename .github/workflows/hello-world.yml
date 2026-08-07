@@ -55,3 +55,14 @@ jobs:
       # 4. List the repo's files to prove checkout worked.
       - name: List repository files
         run: ls -la
+
+      # 5. Make an outbound HTTP request from the runner using curl.
+      #    Runners have normal internet access, so this works with no extra setup.
+      - name: Call an external API with curl
+        run: |
+          echo "Fetching a random GitHub 'zen' quote..."
+          curl -s https://api.github.com/zen
+          echo
+
+          echo "Checking HTTP status code of github.com..."
+          curl -o /dev/null -s -w "HTTP status: %{http_code}\n" https://github.com
