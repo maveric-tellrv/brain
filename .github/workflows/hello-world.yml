@@ -1,0 +1,43 @@
+name: Hello World CI
+
+# --- Triggers: when this workflow runs ---
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # adds a manual "Run workflow" button in the Actions tab
+
+jobs:
+  hello:
+    name: Say hello and inspect the environment
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repo so the runner has access to its files.
+      #    Pinned to a commit SHA (tag v5) instead of a mutable tag for supply-chain safety.
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      # 2. Plain shell steps using `run:` (no external action needed).
+      - name: Say hello
+        run: echo "Hello from GitHub Actions!"
+
+      - name: Show basic context
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch/ref:  ${{ github.ref }}"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Commit SHA:  ${{ github.sha }}"
+          echo "Runner OS:   ${{ runner.os }}"
+
+      # 3. Persist a value in an env var for later steps in this same job.
+      - name: Set a custom environment variable
+        run: echo "GREETING=Hello, $(whoami)!" >> "$GITHUB_ENV"
+
+      - name: Use the custom environment variable
+        run: echo "The greeting is -> $GREETING"
+
+      # 4. List the repo's files to prove checkout worked.
+      - name: List repository files
+        run: ls -la
