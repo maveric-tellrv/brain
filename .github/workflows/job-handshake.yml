@@ -38,7 +38,8 @@ jobs:
       ack: ${{ steps.ack.outputs.ack }}
     steps:
       - name: Print the message received from job1
-        run: echo "Job2 received: ${{ needs.job1_send.outputs.message }}"
+        run: |
+          echo "Job2 received: ${{ needs.job1_send.outputs.message }}"
 
       - id: ack
         name: Send an acknowledgment back to job1
@@ -52,7 +53,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print the ack received from job2
-        run: echo "Job1 (finish) received: ${{ needs.job2.outputs.ack }}"
+        run: |
+          echo "Job1 (finish) received: ${{ needs.job2.outputs.ack }}"
 
       - name: Finish the pipeline
         run: echo "Pipeline complete."
